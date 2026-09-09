@@ -17,7 +17,6 @@ from timed.tracking import factories as tracking_factories
 if TYPE_CHECKING:
     from timed.employment.models import CustomerAssignee, Employment, User
 
-
 register(employment_factories.AbsenceCreditFactory)
 register(employment_factories.AbsenceTypeFactory)
 register(employment_factories.EmploymentFactory)
@@ -112,54 +111,48 @@ def internal_employee(db, employment_factory):  # noqa: ARG001
     return user
 
 
+class AuthenticatedAPIClient(APIClient):
+    user: User
+
+    def __init__(self, user: User, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.force_authenticate(user=user)
+
+
 @pytest.fixture
-def client():
+def client() -> APIClient:
     return APIClient()
 
 
 @pytest.fixture
-def auth_client(auth_user):
+def auth_client(auth_user: User) -> AuthenticatedAPIClient:
     """Return instance of a APIClient that is logged in as test user."""
-    client = APIClient()
-    client.force_authenticate(user=auth_user)
-    client.user = auth_user
-    return client
+    return AuthenticatedAPIClient(auth_user)
 
 
 @pytest.fixture
-def admin_client(admin_user):
+def admin_client(admin_user) -> AuthenticatedAPIClient:
     """Return instance of a APIClient that is logged in as a staff user."""
-    client = APIClient()
-    client.force_authenticate(user=admin_user)
-    client.user = admin_user
-    return client
+    return AuthenticatedAPIClient(admin_user)
 
 
 @pytest.fixture
-def superadmin_client(superadmin_user):
+def superadmin_client(superadmin_user) -> AuthenticatedAPIClient:
     """Return instance of a APIClient that is logged in as superuser."""
-    client = APIClient()
-    client.force_authenticate(user=superadmin_user)
-    client.user = superadmin_user
-    return client
+    return AuthenticatedAPIClient(superadmin_user)
 
 
 @pytest.fixture
-def external_employee_client(external_employee):
+def external_employee_client(external_employee) -> AuthenticatedAPIClient:
     """Return instance of a APIClient that is logged in as external test user."""
-    client = APIClient()
-    client.force_authenticate(user=external_employee)
-    client.user = external_employee
-    return client
+    return AuthenticatedAPIClient(external_employee)
 
 
 @pytest.fixture
-def internal_employee_client(internal_employee):
+def internal_employee_client(internal_employee) -> AuthenticatedAPIClient:
     """Return instance of a APIClient that is logged in as external test user."""
-    client = APIClient()
-    client.force_authenticate(user=internal_employee)
-    client.user = internal_employee
-    return client
+    return AuthenticatedAPIClient(internal_employee)
 
 
 @pytest.fixture(autouse=True)
